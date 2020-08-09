@@ -7,6 +7,6 @@ and for as long as the button continues to be held, the controller
 is considered 'armed'. If the 'fire' button is pressed while the
 controller is 'armed', a relay is opened to allow current to flow
 to an igniter. This circuit is held open for a specified time,
-after which the circuit is broken The 'fire' button does nothing 
+after which the circuit is broken. The 'fire' button does nothing 
 unless the controller is 'armed'. If the 'arm' button is released
 before the fire button is pressed, the controller becomes 'disarmed'.

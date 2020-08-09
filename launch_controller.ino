@@ -1,0 +1,105 @@
+// Model Rocket Launch Controller using Arduino Mego 2560
+
+#include <Adafruit_NeoPixel.h>
+
+// Constants (Mega 2560)
+const int armButtonPin = 22;      // Grey 'arm' button
+const int fireButtonPin = 23;     // Red 'fire' button
+const int neoPixelPin = 6;        // NeoPixel signal
+const int relayPin = 9;           // Ignition relay
+
+const int NUMPIXELS = 1;          // Number of NeoPixels in strand
+
+const long armDelay = 2000;       // How long to hold arm button to arm
+const long fireDuration = 1500;   // How long to open the relay for firing
+
+// Variables
+int armButtonState = 0;           // Start with button off
+int fireButtonState = 0;          // Start with button off
+
+boolean armed = false;            // Start disarmed
+
+unsigned long armedSince = 0;     // Stores last timer count
+
+// Objects
+Adafruit_NeoPixel pixels(NUMPIXELS, neoPixelPin, NEO_GRB + NEO_KHZ800);
+
+
+void setup() {
+  // Initialize outputs
+  pinMode(neoPixelPin, OUTPUT);
+  pinMode(relayPin, OUTPUT);
+
+  // Initialize inputs
+  pinMode(armButtonPin, INPUT);
+  pinMode(fireButtonPin, INPUT);
+
+  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+  pixels.clear(); // Set all pixel colors to 'off'
+  pixels.setPixelColor(0, pixels.Color(0, 20, 0));
+  pixels.show();
+  delay(1000);
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+//  readButtonStates();
+//  buttonTest();
+  
+  readButtonStates();
+
+  // Begin arming sequence
+  if (armButtonState == HIGH) {     // If 'arm' button is not pressed
+    armedSince =  millis();         // 
+    armed = false;
+    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+    pixels.show();
+    }
+  if (millis() - armedSince > armDelay) {
+    armed = true;
+    pixels.setPixelColor(0, pixels.Color(40, 0, 0));
+    pixels.show();
+    }
+  if (armed == true && fireButtonState == LOW) {
+    digitalWrite(relayPin, HIGH);   // Open firing relay
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+    pixels.show();
+    delay(fireDuration);            // Wait for the charge to ignite
+    digitalWrite(relayPin, LOW);    // Close the relay
+    armed = false;                  // Disarm controller
+    armedSince = millis();          // Reset arming timer
+    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+    pixels.show();
+    }
+  // End of arming sequence
+  
+}
+
+
+// Functions
+
+// Reads the button states
+void readButtonStates() {
+  armButtonState = digitalRead(armButtonPin);
+  fireButtonState =  digitalRead(fireButtonPin);
+  }
+
+void buttonTest() {
+  if (armButtonState == LOW && fireButtonState == HIGH) {
+    pixels.setPixelColor(0, pixels.Color(84, 0, 0));
+    pixels.show();
+    }
+  else if (armButtonState == HIGH && fireButtonState == LOW) {
+    pixels.setPixelColor(0, pixels.Color(0, 0, 84));
+    pixels.show();
+    }
+  else if (armButtonState == LOW && fireButtonState == LOW) {
+    pixels.setPixelColor(0, pixels.Color(0, 84, 0));
+    pixels.show();
+    }
+  else {
+    pixels.setPixelColor(0, pixels.Color(10, 10, 10));
+    pixels.show();
+    }
+  }

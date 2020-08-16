@@ -1,12 +1,31 @@
-// Model Rocket Launch Controller using Arduino Mego 2560
+// Model Rocket Launch Controller - TravdogIO 08/2020
+// Uses two buttons and a relay to ignite model rocket motors
+// Arm button to be held for a set time, after which the device
+// becomes 'armed'. Only then will the 'fire' button be enabled
+// to open the relay and trigger ignition. Releasing the 'arm'
+// button at any time will disarm the device and disable the
+// 'fire' button.
 
 #include <Adafruit_NeoPixel.h>
 
-// Constants (Mega 2560)
-const int armButtonPin = 22;      // Grey 'arm' button
-const int fireButtonPin = 23;     // Red 'fire' button
-const int neoPixelPin = 6;        // NeoPixel signal
-const int relayPin = 9;           // Ignition relay
+// Constants (Uncomment for Mega 2560)
+//const int armButtonPin = 22;      // Grey 'arm' button
+//const int fireButtonPin = 23;     // Red 'fire' button
+//const int neoPixelPin = 6;        // NeoPixel signal
+//const int relayPin = 9;           // Ignition relay
+
+// Constants (Uncomment for Trinket 5v)
+//const int armButtonPin = 3;      // Grey 'arm' button
+//const int fireButtonPin = 4;     // Red 'fire' button
+//const int neoPixelPin = 0;        // NeoPixel signal
+//const int relayPin = 2;           // Ignition relay
+
+// Constants (Uncomment for ESP32)
+const int armButtonPin = 12;      // Grey 'arm' button
+const int fireButtonPin = 27;     // Red 'fire' button
+const int neoPixelPin = 25;        // NeoPixel signal
+const int relayPin = 32;           // Ignition relay
+
 
 const int NUMPIXELS = 1;          // Number of NeoPixels in strand
 
@@ -43,25 +62,24 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-//  readButtonStates();
-//  buttonTest();
-  
   readButtonStates();
 
   // Begin arming sequence
-  if (armButtonState == HIGH) {     // If 'arm' button is not pressed
-    armedSince =  millis();         // 
-    armed = false;
+  if (armButtonState == LOW) {     // If 'arm' button is not pressed
+    armedSince =  millis();        // Reset arming timer
+    armed = false;                 // Stay disarmed
     pixels.setPixelColor(0, pixels.Color(0, 0, 0));
     pixels.show();
-    }
+  }
   if (millis() - armedSince > armDelay) {
-    armed = true;
+    armed = true;                   // Arm after button hold delay
     pixels.setPixelColor(0, pixels.Color(40, 0, 0));
     pixels.show();
-    }
-  if (armed == true && fireButtonState == LOW) {
+  }
+  // End of arming sequence
+  
+  // Begin firing sequence
+  if (armed == true && fireButtonState == HIGH) {
     digitalWrite(relayPin, HIGH);   // Open firing relay
     pixels.setPixelColor(0, pixels.Color(0, 255, 0));
     pixels.show();
@@ -71,8 +89,10 @@ void loop() {
     armedSince = millis();          // Reset arming timer
     pixels.setPixelColor(0, pixels.Color(0, 0, 0));
     pixels.show();
-    }
-  // End of arming sequence
+  }
+  
+ // End firing sequence
+  
   
 }
 
@@ -83,23 +103,4 @@ void loop() {
 void readButtonStates() {
   armButtonState = digitalRead(armButtonPin);
   fireButtonState =  digitalRead(fireButtonPin);
-  }
-
-void buttonTest() {
-  if (armButtonState == LOW && fireButtonState == HIGH) {
-    pixels.setPixelColor(0, pixels.Color(84, 0, 0));
-    pixels.show();
-    }
-  else if (armButtonState == HIGH && fireButtonState == LOW) {
-    pixels.setPixelColor(0, pixels.Color(0, 0, 84));
-    pixels.show();
-    }
-  else if (armButtonState == LOW && fireButtonState == LOW) {
-    pixels.setPixelColor(0, pixels.Color(0, 84, 0));
-    pixels.show();
-    }
-  else {
-    pixels.setPixelColor(0, pixels.Color(10, 10, 10));
-    pixels.show();
-    }
-  }
+}
